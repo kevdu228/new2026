@@ -15,19 +15,9 @@ function GreetingCard() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
-  const [shortLink, setShortLink] = useState<string | null>(null);
-  const [showFullLink, setShowFullLink] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-
-  // small helper to build short tokens
-  const makeToken = (len = 6) => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const arr = new Uint8Array(len);
-    crypto.getRandomValues(arr);
-    return Array.from(arr).map((n) => chars[n % chars.length]).join("");
-  };
 
   // 🎉 Confetti animation on page load
   useEffect(() => {
@@ -61,23 +51,6 @@ function GreetingCard() {
     if (message) params.set("msg", message);
     const url = `${window.location.origin}?${params.toString()}`;
     setLink(url);
-    setShowFullLink(false);
-
-    try {
-      const res = await fetch('/api/shorten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      if (res.ok) {
-        const { token } = await res.json();
-        setShortLink(`${window.location.origin}/t/${token}`);
-      } else {
-        setShortLink(null);
-      }
-    } catch (e) {
-      setShortLink(null);
-    }
 
     // Small celebration when generating link
     confetti({
@@ -258,18 +231,14 @@ function GreetingCard() {
 
             <div className="flex items-center gap-3 flex-wrap">
               <p className="text-yellow-400 text-sm break-all max-w-[18rem] md:max-w-xs">
-                {shortLink && !showFullLink
-                  ? shortLink
-                  : link.length > 80 && !showFullLink
-                  ? `${link.slice(0, 40)}…${link.slice(-20)}`
-                  : link}
+                {link}
               </p>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(shortLink ?? link);
+                      await navigator.clipboard.writeText(link);
                     } catch {}
                   }}
                   className="bg-white/5 text-white px-3 py-1 rounded text-xs"
@@ -277,20 +246,8 @@ function GreetingCard() {
                   Copier
                 </button>
 
-                {shortLink && (
-                  <button
-                    onClick={() => setShowFullLink((s) => !s)}
-                    className="bg-white/5 text-white px-3 py-1 rounded text-xs"
-                  >
-                    {showFullLink ? "Afficher court" : "Afficher complet"}
-                  </button>
-                )}
               </div>
             </div>
-
-            {shortLink && (
-              <p className="mt-2 text-xs text-white/60">Note: le raccourci est stocké sur le serveur et fonctionne depuis n'importe quel navigateur.</p>
-            )}
           </motion.div>
         )}
       </div>
