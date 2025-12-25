@@ -96,21 +96,6 @@ function GreetingCard() {
     }
   };
 
-  // If the URL has a short token (?t=...), try to resolve it from localStorage and redirect to the full link
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const t = params.get("t");
-    if (!t) return;
-    try {
-      const mapped = localStorage.getItem(`short_${t}`);
-      if (mapped) {
-        window.location.replace(mapped);
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, []);
-
   // Audio playback effect
   useEffect(() => {
     const audioEl = audioRef.current;
